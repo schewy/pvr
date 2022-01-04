@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/pvr/static/css/main.c0649dbd.css",
+    "main.js": "/pvr/static/js/main.d21ba53f.js",
+    "static/js/787.50a609b9.chunk.js": "/pvr/static/js/787.50a609b9.chunk.js",
+    "index.html": "/pvr/index.html",
+    "main.c0649dbd.css.map": "/pvr/static/css/main.c0649dbd.css.map",
+    "main.d21ba53f.js.map": "/pvr/static/js/main.d21ba53f.js.map",
+    "787.50a609b9.chunk.js.map": "/pvr/static/js/787.50a609b9.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.c0649dbd.css",
+    "static/js/main.d21ba53f.js"
+  ]
+}
