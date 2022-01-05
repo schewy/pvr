@@ -47,16 +47,18 @@ const pureCityBonus = {
 
 const aggregate = (data, key, counter) => {
     let result = [];
+    // console.log(data);
     data.reduce(function(res, value) {
         if (!res[value[key]]) {
-            res[value[key]] = {"City Name" : value["City Name"], "District Name" : value["District Name"], "Street Name" : value["Street Name"], count : 0}
+            res[value[key]] = {"img" : value["img"], "City Name" : value["City Name"], "District Name" : value["District Name"], "Street Name" : value["Street Name"], count : 0, Brix : 0}
             result.push(res[value[key]]);
         }
         // console.log(res);
         res[value[key]].count += value[counter]
+        res[value[key]].Brix += Number(value["Brix"])
         return res;
     },{});
-    // console.log(result)
+    // console.log(data);
     return result;
 }
 
@@ -75,7 +77,7 @@ const getHouseBonus = (data) => {
 
 const getPureStreetBonus = (data) => {
     let pureStreet = data.filter((x) => x.count >= 7)
-    console.log(pureStreet);
+    // console.log(pureStreet);
     let numOfPureStreet = 0
     let totalPureStreetBonus = 0
     pureStreet.forEach((p)=> {
@@ -87,7 +89,7 @@ const getPureStreetBonus = (data) => {
 }
 
 const getImpureStreetBonus = (data, psc) =>{
-    let d = data.filter((x) => x["City Name"])
+    let d = data.filter((x) => x["City Name"] != "Special")
     let upsc = Math.floor(d.length/7) - psc
     return [upsc * 150 , upsc]
 }
@@ -107,12 +109,19 @@ const getDistrictBonus = (data) =>{
     let pureStreet = data.filter((x) => x.count >= 7)
     pureStreet.forEach((p) => {p.numOfPS = Math.floor(p.count / 7)})
     pureStreet = aggregate(pureStreet,"District Name", "numOfPS")
-    pureStreet.forEach((p) => {
-        totalDistrictBonus += pureDistrictBonus[p["City Name"]] * Math.floor(p.count / 3);
-        numOfDistrict += Math.floor(p.count / 3)
+    const districtData = pureStreet.filter((x) => x.count >= 3)
+    districtData.forEach((x)=>{
+        x.count = Math.floor(x.count / 3)
+        x.Brix = pureDistrictBonus[x["City Name"]] * x.count
+    })
+    console.log(districtData)
+    districtData.forEach((p) => {
+        console.log(pureDistrictBonus[p["City Name"]])
+        totalDistrictBonus += pureDistrictBonus[p["City Name"]] * p.count;
+        numOfDistrict += p.count;
     })
     console.log(totalDistrictBonus, numOfDistrict);
-    return [totalDistrictBonus, numOfDistrict];
+    return [totalDistrictBonus, numOfDistrict, districtData];
 }
 
 const getCityBonus = (data) =>{
@@ -146,9 +155,13 @@ function BrixCal() {
     const [data, setData] = useState([]);
     const [address, setAddress] = useState('');
     const [addressHolder, setAddressHolder] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [key,setKey] = useState('count');
+    const [des, setDes] = useState('true')
     // const ref = "https://api.opensea.io/api/v1/assets?owner=0x302f23818ecc618f728beb5383195fc146123fc1&order_direction=desc&offset=100&limit=50&collection=propertysofficial";
     useEffect(()=>{
         async function GetData() {
+            setLoading(true);
             let pool = []
             let offset = 0
             while (1) {
@@ -165,13 +178,16 @@ function BrixCal() {
                 inventory.forEach(nft => {
                     let row = {}
                     // console.log(nft.traits)
+                    row.img = nft.image_url
                     nft.traits.forEach((trait)=> {
                         row[trait.trait_type] = trait.value
                         if (trait.trait_type === "Special") {
+                            row['City Name'] = "Special"
+                            row['Street Name'] = trait.value
                             row["trait_count"] = trait.trait_count;
                         }
                     })
-                    if (row['City Name']) {
+                    if (row['City Name'] !== 'Special') {
                         row.Brix = inBrix[row['City Name']]
                     } else {
                         row.Brix = inBrix[row['trait_count']]
@@ -179,152 +195,261 @@ function BrixCal() {
                     row.counter = 1;
                     pool.push(row)
                     // setData(pool);
+                    // console.log(pool);
                 });
                 offset += 50;
             }
             // console.log(pool);
             // setData(pool);
+            setLoading(false);
         }
         GetData();
     },[address]);
     
+    const sortData = (data, key, des) => {
+        const sortedData = [];
+        // console.log(key);
+        // console.log(des);
+        // console.log(data.sort((a,b) => a[key] - b[key]));
+        if(des === true){
+            sortedData = data.sort((a,b) => b[key] - a[key])
+        }
+        if(des === false){
+            sortedData = data.sort((a,b) => a[key] - b[key])
+        }
+        return sortedData;
+    }
     // Brix Calculation
     // console.log(data)
     const [houseBonus, houseCount] = getHouseBonus(data);
     const aData = aggregate(data, "Street Name", "counter")
-    const [pureStreetBonus, pureStreetCount] = getPureStreetBonus(aData);
-    const [impureStreetBonus, impureStreetCount] = getImpureStreetBonus(data, pureStreetCount);
-    const [districtBonus, districtCount] = getDistrictBonus(aData);
-    const [cityBonus, cityCount] = getCityBonus(aData)
-    const [specialBonus, specialCount] = getSpecialBonus(data);
+    // console.log(aData);
+    console.log(sortData(aData, key, des));
+    const [totalPureStreetBonus, pureStreetCount] = getPureStreetBonus(aData);
+    const [totalImpureStreetBonus, impureStreetCount] = getImpureStreetBonus(data, pureStreetCount);
+    const [totalDistrictBonus, districtCount, dData] = getDistrictBonus(aData);
+    const [totalCityBonus, cityCount] = getCityBonus(aData)
+    const [totalSpecialBonus, specialCount] = getSpecialBonus(data);
+    const totalStreetBonus = totalPureStreetBonus + totalImpureStreetBonus;
     // console.log(houseBonus + pureStreetBonus + impureStreetBonus + districtBonus + cityBonus + specialBonus);
-    const totalBonus = houseBonus + pureStreetBonus + impureStreetBonus + districtBonus + cityBonus + specialBonus
-    console.log(address);
+    const totalBonus = houseBonus + totalPureStreetBonus + totalImpureStreetBonus + totalDistrictBonus + totalCityBonus
+    const columns = aData[0] && Object.keys(aData[0])
+    const [toggleState, setToggleState] = useState(1);
+
+    const toggleTab = (index) => {
+        setToggleState(index);
+    };
+    // console.log(data);
     return (
         <>
             <div className='container-fluid' style={{width : '90%',}} >
                 <h1 className='h3 text-center whiteText d-none d-sm-block d-md-block mt-3 mb-3'> Property's NFT </h1>
                 <div className='card border' style={{borderColor:'rgb(229, 232, 235)', marginBottom:"24px"}}></div>
+                <div className='col-lg-4'>
+
+                </div>
                 <Row>
-                    <div className='col-3 priceText'> <h4 className='whiteText' style={{textAlign:"center",}}> Wallet Address : </h4> </div>
+                    <div className='col-lg-3'>
+                    <Row>
                     <div className='col-7 priceText'>
                     <input className='form-control mb-2' autoComplete='off' placeholder='Wallet Address' type="text" value ={addressHolder} height="28px" onChange={(e) =>
                         setAddressHolder(e.target.value)}/>
                     </div>
-                    <div className='col-2'>
+                    <div className='col-5'>
                     <Button className='filterButton btn-block mt-0' onClick={() => setAddress(addressHolder)}> Filter </Button>
                 </div>
                 </Row>
-                <div className='card-body' style={{backgroundColor:'#262B2F'}}>
-                    <div className="row justify-content-md-center">
-                        <Col className="col-sm col-lg-10 d-none d-sm-block d-md-block">
-                            <Row>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Total NFT : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {houseCount} </h4>
-                                </div>
-                            </Row>
-                            <Row>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Total Houses : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {houseCount - specialCount} </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Bonus : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {houseBonus} </h4>
+                        <div className='card-body' style={{backgroundColor:'#262B2F'}}>
+                            <div className="row">
+                                <Col className="col-sm d-none d-sm-block d-md-block">
+                                    <Row className='mb-1'>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> NFT Owned </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {houseCount} </p>
+                                        </div>
+                                    </Row>
+                                    <Row className='mb-1'>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> Houses Owned </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {houseCount - specialCount} </p>
+                                        </div>
+                                    </Row>
+                                    <Row>
+                                    <div className='col-9 priceText'>
+                                        <p className='labelText'> Special Owned </p>
+                                    </div>
+                                    <div className='col-3 priceText'>
+                                        <p className='numberText'> {specialCount} </p>
+                                    </div>
+                                </Row>
+                                    <Row>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> Street(P) Completed </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {pureStreetCount} </p>
+                                        </div>
+                                    </Row>
+                                    <Row>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> Street(I) Completed </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {impureStreetCount} </p>
+                                        </div>
+                                    </Row>
+                                    <Row>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> District Completed </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {districtCount} </p>
+                                        </div>
+                                    </Row>
+                                    <Row>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> City Completed </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {cityCount} </p>
+                                        </div>
+                                    </Row>
+                                    {totalBonus > 0 ? 
+                                        (<Row>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> City Bonus </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {totalCityBonus} </p>
+                                    </div>
+                                    </Row>) : <></>}
+                                    <Row>
+                                        <div className='col-9 priceText'>
+                                            <p className='labelText'> Total Bonus </p>
+                                        </div>
+                                        <div className='col-3 priceText'>
+                                            <p className='numberText'> {totalBonus} </p>
+                                    </div>
+                                    </Row>
+                                </Col>
                             </div>
-                            </Row>
-                            <Row>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Pure Street : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {pureStreetCount} </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Bonus : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {pureStreetBonus} </h4>
-                            </div>
-                            </Row>
-                            <Row>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Impure Street : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {impureStreetCount} </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Bonus : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {impureStreetBonus} </h4>
-                            </div>
-                            </Row>
-                            <Row>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> District : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {districtCount} </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Bonus : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {districtBonus} </h4>
-                            </div>
-                            </Row>
-                            <Row>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> City : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {cityCount} </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Bonus : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {cityBonus} </h4>
-                            </div>
-                            </Row>
-                            <Row>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Special : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {specialCount} </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Bonus : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {specialBonus} </h4>
-                            </div>
-                            </Row>
-                            <Row>
-                                <div className='col-3 priceText'>
-                                </div>
-                                <div className='col-3 priceText'>
-                                </div>
-                                <div className='col-3 priceText'>
-                                    <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> Total Bonus : </h4>
-                                </div>
-                                <div className='col-3 priceText'>
-                                <h4 className='whiteText' style={{textAlign:"center", marginBottom: '12px'}}> {totalBonus} </h4>
-                            </div>
-                            </Row>
-                        </Col>
+                        </div>
                     </div>
-                </div>
+                    <div className='col-lg-9'>
+                        <div className="bloc-tabs">
+                            <button
+                            className={toggleState === 1 ? "tabs active-tabs" : "tabs"}
+                            onClick={() => toggleTab(1)}
+                            >
+                            NFT
+                            </button>
+                            <button
+                            className={toggleState === 2 ? "tabs active-tabs" : "tabs"}
+                            onClick={() => toggleTab(2)}
+                            >
+                            Street
+                            </button>
+                            <button
+                            className={toggleState === 3 ? "tabs active-tabs" : "tabs"}
+                            onClick={() => toggleTab(3)}
+                            >
+                            District
+                            </button>
+                        </div>
+                        <div className={toggleState === 1 ? "content  active-content" : "content"}>
+                            <div>
+                                <h3 className='whiteText'> NFT Brix Bonus: {houseBonus} </h3>
+                            </div>
+                            <table className='content-table table table-hover table-dark dataTable no-footer' cellPadding={0} cellSpacing={0}>
+                                <thead>
+                                    <tr>
+                                        <th> </th>
+                                        <th> City </th>
+                                        <th> District </th>
+                                        <th> Street </th>
+                                        <th> Unit Owned </th>
+                                        <th> Brix </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {aData.sort((a,b) => b.Brix - a.Brix).map((row)=>(
+                                    <tr>
+                                        <td className='text-center'> <img src = {row.img} width={30} height={45}/> </td>
+                                        <td className='text-center'> {row['City Name']} </td>
+                                        <td className='text-center'> {row['District Name']} </td>
+                                        <td className='text-center'> {row['Street Name']} </td>
+                                        <td className='text-center'> {row['count']} </td>
+                                        <td className='text-center'> {row['Brix']} </td>
+                                    </tr>
+                                    )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className={toggleState === 2 ? "content  active-content" : "content"}>
+                            <div>
+                                <h3 className='whiteText'> Total Street Bonus: {totalPureStreetBonus} (Pure) + {totalImpureStreetBonus} (impure) = {totalStreetBonus} </h3>
+                            </div>
+                            <table className='content-table table table-hover table-dark dataTable no-footer' cellPadding={0} cellSpacing={0}>
+                                <thead>
+                                    <tr>
+                                        <th> </th>
+                                        <th> City </th>
+                                        <th> District </th>
+                                        <th> Street </th>
+                                        <th> Set Owned </th>
+                                        <th> Brix </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {aData.filter((x) => x.count >= 7).sort((a,b) => b.Brix - a.Brix).map((row)=>(
+                                    <tr>
+                                        <td className='text-center'> <img src = {row.img} width={30} height={45}/> </td>
+                                        <td className='text-center'> {row['City Name']} </td>
+                                        <td className='text-center'> {row['District Name']} </td>
+                                        <td className='text-center'> {row['Street Name']} </td>
+                                        <td className='text-center'> {Math.floor(row['count']/7)} </td>
+                                        <td className='text-center'> {Math.floor(row['count']/7)*pureStreetBonus[row['City Name']]} </td>
+                                    </tr>
+                                    )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className={toggleState === 3 ? "content  active-content" : "content"}>
+                            <div>
+                                <h3 className='whiteText'> Total District Bonus: {totalDistrictBonus}</h3>
+                            </div>
+                            <table className='content-table table table-hover table-dark dataTable no-footer' cellPadding={0} cellSpacing={0}>
+                                <thead>
+                                    <tr>
+                                        <th> </th>
+                                        <th> City </th>
+                                        <th> District </th>
+                                        <th> Set Owned </th>
+                                        <th> Brix </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dData.sort((a,b) => b.Brix - a.Brix).map((row)=>(
+                                    <tr>
+                                        <td className='text-center'> <img src = {row.img} width={30} height={45}/> </td>
+                                        <td className='text-center'> {row['City Name']} </td>
+                                        <td className='text-center'> {row['District Name']} </td>
+                                        <td className='text-center'> {row.count} </td>
+                                        <td className='text-center'> {row.Brix} </td>
+                                    </tr>
+                                    )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </Row>
             </div>
         </>
         

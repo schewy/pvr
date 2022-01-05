@@ -28,20 +28,20 @@
 
 .content-table {
   border-collapse: collapse;
-  margin: 25px 0;
+  /* margin: 25px 0; */
   font-size: 0.9em;
   min-width: 400px;
   border-radius: 5px 5px 0 0;
   overflow: hidden;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-  align-content: center;
+  align-content: left;
   border-color: #3c3c3c;
 }
 
 .content-table thead tr {
   background-color: #4f4f4f;
   color: white;
-  text-align: left;
+  text-align: center;
   font-weight: bold;
 }
 
@@ -91,7 +91,7 @@
 }
 
 .priceText {
-  justify-content: center;
+  /* justify-content: center; */
 }
 
 .buyNowButton {
@@ -103,4 +103,69 @@
 
 .whiteText {
   color: #e5e8eb;
+  /* text-align: left !important; */
+}
+
+.labelText {
+  color: #9402fe;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: left !important;
+}
+
+.numberText {
+  color: #e5e8eb;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.bloc-tabs {
+  display: flex;
+}
+
+.tabs {
+  padding: 15px;
+  text-align: center;
+  width: 50%;
+  background: none;
+  color: #e5e8eb;
+  font-weight: bold;
+  /* cursor: pointer; */
+  border: 1px solid #e5e8eb;
+  /* border-bottom: none; */
+  box-sizing: content-box;
+  position: relative;
+  outline: none;
+}
+/* .tabs:not(:last-child) {
+  border-right: 1px solid rgba(0, 0, 0, 0.274);
+} */
+
+.active-tabs {
+  border-top: 10px solid #9402fe;
+}
+
+/* .active-tabs::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% + 2px);
+  height: 5px;
+  background: #9402fe;
+} */
+
+.content {
+  background: none;
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+.active-content {
+  display: block;
 }
