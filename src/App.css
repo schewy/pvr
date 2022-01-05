@@ -43,6 +43,7 @@
   color: white;
   text-align: center;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .content-table th,

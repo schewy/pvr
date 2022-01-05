@@ -65,7 +65,6 @@ const aggregate = (data, key, counter) => {
 const getHouseBonus = (data) => {
     let hb = 0;
     // console.log(data);
-    console.log(data.length);
     data.forEach((b) => {
         // console.log(Number(b.Brix));
         if (b.Brix) {
@@ -114,13 +113,13 @@ const getDistrictBonus = (data) =>{
         x.count = Math.floor(x.count / 3)
         x.Brix = pureDistrictBonus[x["City Name"]] * x.count
     })
-    console.log(districtData)
+    // console.log(districtData)
     districtData.forEach((p) => {
-        console.log(pureDistrictBonus[p["City Name"]])
+        // console.log(pureDistrictBonus[p["City Name"]])
         totalDistrictBonus += pureDistrictBonus[p["City Name"]] * p.count;
         numOfDistrict += p.count;
     })
-    console.log(totalDistrictBonus, numOfDistrict);
+    // console.log(totalDistrictBonus, numOfDistrict);
     return [totalDistrictBonus, numOfDistrict, districtData];
 }
 
@@ -156,8 +155,8 @@ function BrixCal() {
     const [address, setAddress] = useState('');
     const [addressHolder, setAddressHolder] = useState('');
     const [loading, setLoading] = useState(true);
-    const [key,setKey] = useState('count');
-    const [des, setDes] = useState('true')
+    const [key,setKey] = useState('Brix');
+    const [des, setDes] = useState(false)
     // const ref = "https://api.opensea.io/api/v1/assets?owner=0x302f23818ecc618f728beb5383195fc146123fc1&order_direction=desc&offset=100&limit=50&collection=propertysofficial";
     useEffect(()=>{
         async function GetData() {
@@ -183,6 +182,7 @@ function BrixCal() {
                         row[trait.trait_type] = trait.value
                         if (trait.trait_type === "Special") {
                             row['City Name'] = "Special"
+                            row['District Name'] = " "
                             row['Street Name'] = trait.value
                             row["trait_count"] = trait.trait_count;
                         }
@@ -206,16 +206,18 @@ function BrixCal() {
         GetData();
     },[address]);
     
-    const sortData = (data, key, des) => {
-        const sortedData = [];
-        // console.log(key);
-        // console.log(des);
+    const sortData = (unsortedData, key, des) => {
+        let sortedData = [];
+        console.log(key);
+        // console.log(unsortedData);
         // console.log(data.sort((a,b) => a[key] - b[key]));
         if(des === true){
-            sortedData = data.sort((a,b) => b[key] - a[key])
-        }
-        if(des === false){
-            sortedData = data.sort((a,b) => a[key] - b[key])
+            // console.log("true");
+            // sortedData = unsortedData.sort((a,b) => b[key] - a[key])
+            sortedData = unsortedData.sort((a,b) => a[key] < b[key] ? 1: -1)
+        } else if (des === false){
+            // console.log("false");
+            sortedData = unsortedData.sort((a,b) => a[key] > b[key] ? 1: -1)
         }
         return sortedData;
     }
@@ -223,8 +225,8 @@ function BrixCal() {
     // console.log(data)
     const [houseBonus, houseCount] = getHouseBonus(data);
     const aData = aggregate(data, "Street Name", "counter")
-    // console.log(aData);
-    console.log(sortData(aData, key, des));
+    console.log(aData);
+    // console.log(sortData(aData, key, des));
     const [totalPureStreetBonus, pureStreetCount] = getPureStreetBonus(aData);
     const [totalImpureStreetBonus, impureStreetCount] = getImpureStreetBonus(data, pureStreetCount);
     const [totalDistrictBonus, districtCount, dData] = getDistrictBonus(aData);
@@ -233,13 +235,10 @@ function BrixCal() {
     const totalStreetBonus = totalPureStreetBonus + totalImpureStreetBonus;
     // console.log(houseBonus + pureStreetBonus + impureStreetBonus + districtBonus + cityBonus + specialBonus);
     const totalBonus = houseBonus + totalPureStreetBonus + totalImpureStreetBonus + totalDistrictBonus + totalCityBonus
-    const columns = aData[0] && Object.keys(aData[0])
     const [toggleState, setToggleState] = useState(1);
-
     const toggleTab = (index) => {
         setToggleState(index);
     };
-    // console.log(data);
     return (
         <>
             <div className='container-fluid' style={{width : '90%',}} >
@@ -368,15 +367,15 @@ function BrixCal() {
                                 <thead>
                                     <tr>
                                         <th> </th>
-                                        <th> City </th>
-                                        <th> District </th>
-                                        <th> Street </th>
-                                        <th> Unit Owned </th>
-                                        <th> Brix </th>
+                                        <th onClick={()=> {setDes(!des); setKey("City Name")}}> City </th>
+                                        <th onClick={()=> {setDes(!des); setKey("District Name")}}> District </th>
+                                        <th onClick={()=> {setDes(!des); setKey("Street Name")}}> Street </th>
+                                        <th onClick={()=> {setDes(!des); setKey("count")}}> Unit Owned </th>
+                                        <th onClick={()=> {setDes(!des); setKey("Brix")}}> Brix </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {aData.sort((a,b) => b.Brix - a.Brix).map((row)=>(
+                                    {sortData(aData,key,des).map((row)=>(
                                     <tr>
                                         <td className='text-center'> <img src = {row.img} width={30} height={45}/> </td>
                                         <td className='text-center'> {row['City Name']} </td>
@@ -392,21 +391,21 @@ function BrixCal() {
                         </div>
                         <div className={toggleState === 2 ? "content  active-content" : "content"}>
                             <div>
-                                <h3 className='whiteText'> Total Street Bonus: {totalPureStreetBonus} (Pure) + {totalImpureStreetBonus} (impure) = {totalStreetBonus} </h3>
+                                <h3 className='whiteText'> Total Street Bonus: {totalPureStreetBonus} (Pure) + {totalImpureStreetBonus} (Impure) = {totalStreetBonus} </h3>
                             </div>
                             <table className='content-table table table-hover table-dark dataTable no-footer' cellPadding={0} cellSpacing={0}>
                                 <thead>
                                     <tr>
                                         <th> </th>
-                                        <th> City </th>
-                                        <th> District </th>
-                                        <th> Street </th>
-                                        <th> Set Owned </th>
-                                        <th> Brix </th>
+                                        <th onClick={()=> {setDes(!des); setKey("City Name")}}> City </th>
+                                        <th onClick={()=> {setDes(!des); setKey("District Name")}}> District </th>
+                                        <th onClick={()=> {setDes(!des); setKey("Street Name")}}> Street </th>
+                                        <th onClick={()=> {setDes(!des); setKey("count")}}> Set Owned </th>
+                                        <th onClick={()=> {setDes(!des); setKey("Brix")}}> Brix </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {aData.filter((x) => x.count >= 7).sort((a,b) => b.Brix - a.Brix).map((row)=>(
+                                    {sortData(aData.filter((x) => x.count >= 7),key,des).map((row)=>(
                                     <tr>
                                         <td className='text-center'> <img src = {row.img} width={30} height={45}/> </td>
                                         <td className='text-center'> {row['City Name']} </td>
