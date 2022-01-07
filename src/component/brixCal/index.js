@@ -88,7 +88,7 @@ const getPureStreetBonus = (data) => {
 }
 
 const getImpureStreetBonus = (data, psc) =>{
-    let d = data.filter((x) => x["City Name"] != "Special")
+    let d = data.filter((x) => x["City Name"] !== "Special")
     let upsc = Math.floor(d.length/7) - psc
     return [upsc * 150 , upsc]
 }

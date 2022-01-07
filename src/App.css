@@ -170,3 +170,32 @@
 .active-content {
   display: block;
 }
+
+.dashboard {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+}
+
+.component {
+  padding-left: 20px;
+  padding-right: 20px;
+  width: 20%;
+  border: 1px solid #e5e8eb;
+  align-content: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  border-radius: 3px;
+}
+
+.cheader {
+  font-weight: bold;
+  font-size: 24px;
+}
+
+.ccontent {
+  /* font-weight: bold; */
+  font-size: 22px;
+}

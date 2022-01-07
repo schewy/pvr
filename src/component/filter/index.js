@@ -5,6 +5,7 @@ import {Row, Col, Button} from 'react-bootstrap'
 import traitsData from '../dataList/traitsData';
 import FilterTable from '../data_table';
 import dummyData from '../dataList/dummydata'
+import tokenData from '../dataList/token_data'
 
 function Filter() {
     const [data, setData] = useState([]);
@@ -55,85 +56,91 @@ function Filter() {
     }
 
     const getUnique = (arr, prop) => {
-        let unique = [...new Set(arr.map(x => x[prop]))]
-        console.log(unique);            
+        let unique = [...new Set(arr.map(x => x[prop]))]         
         return unique;
     }
     useEffect(()=>{
-        // async function GetData() {
-        // let main = new Array();
-        // let offset = 0;
-        // while (offset <= 5950){
-        //     let url = `${ref}&offset=${offset}&limit=50`;
-        //     const response = await Axios.get(url);
-        //     // console.log(response.data)
-        //     offset += 50;
-        //     await response.data.assets.forEach((x)=>{
-        //     let row = {}
-        //     // username
-        //     if(x.owner.user === null) {
-        //         x.owner.user = {username: "noname"}
-        //     };
-        //     // console.log(data.owner);
-        //     if(x.owner.user.username !== null)
-        //     {
-        //         row['User Name'] = x.owner.user.username;
-        //     } else {
-        //         row['User Name'] = "noname";
-        //     }
-        //     // address
-        //     // row['Address'] = x.owner.address;
-        //     // token id
-        //     // row['Token ID'] = x.token_id
-        //     // x.traits.forEach((trait)=> {row[trait.trait_type] = trait.value})
-        //     // console.log(x.traits.filter((x)=>x["trait_type"]==="City Name").pop().value);
-        //     if (x.traits.filter((x)=>x["trait_type"]==="City Name").pop()) {
-        //         row["City Name"] = x.traits.filter((x)=>x["trait_type"]==="City Name").pop().value;
-        //     } else {
-        //         row["City Name"] = ""
-        //     }
-        //     if (x.traits.filter((x)=>x["trait_type"]==="District Name").pop()) {
-        //         row["District Name"] = x.traits.filter((x)=>x["trait_type"]==="District Name").pop().value;
-        //     } else {
-        //         row["District Name"] = ""
-        //     }
-        //     if (x.traits.filter((x)=>x["trait_type"]==="Street Name").pop()) {
-        //         row["Street Name"] = x.traits.filter((x)=>x["trait_type"]==="Street Name").pop().value;
-        //     } else {
-        //         row["Street Name"] = ""
-        //     }
-        //     if (x.traits.filter((x)=>x["trait_type"]==="Special").pop()) {
-        //         row["Special"] = x.traits.filter((x)=>x["trait_type"]==="Special").pop().value;
-        //     } else {
-        //         row["Special"] = ""
-        //     }
-        //     if (x.sell_orders !== null){
-        //         row['Current Price'] = String(Number(x.sell_orders[0].current_price)/ Math.pow(10,18))
-        //         // console.log(row.current_price);
-        //     } else {
-        //         row['Current Price'] = ""
-        //     }
-        //     main.push(row);
-        //     // console.log(main.length);
-        //     if (main.length === 6000){
-        //         // console.log(main);
-        //         console.log(JSON.stringify(main));
-        //     }
+        async function GetData() {
+        let main = new Array();
+        let offset = 0;
+        while (offset <= 5950){
+            let url = `${ref}&offset=${offset}&limit=50`;
+            const response = await Axios.get(url);
+            // console.log(response.data)
+            offset += 50;
+            await response.data.assets.forEach((x)=>{
+            let row = {}
+            // username
+            // if(x.owner.user === null) {
+            //     x.owner.user = {username: "noname"}
+            // };
+            // console.log(data.owner);
+            // if(x.owner.user.username !== null)
+            // {
+            //     row['User Name'] = x.owner.user.username;
+            // } else {
+            //     row['User Name'] = "noname";
+            // }
+            // address
+            // row['Address'] = x.owner.address;
+            // token id
+            // row['Token ID'] = x.token_id
+            // x.traits.forEach((trait)=> {row[trait.trait_type] = trait.value})
+            // console.log(x.traits.filter((x)=>x["trait_type"]==="City Name").pop().value);
+            if (x.traits.filter((x)=>x["trait_type"]==="City Name").pop()) {
+                row["City Name"] = x.traits.filter((x)=>x["trait_type"]==="City Name").pop().value;
+            } else {
+                row["City Name"] = ""
+            }
+            if (x.traits.filter((x)=>x["trait_type"]==="District Name").pop()) {
+                row["District Name"] = x.traits.filter((x)=>x["trait_type"]==="District Name").pop().value;
+            } else {
+                row["District Name"] = ""
+            }
+            if (x.traits.filter((x)=>x["trait_type"]==="Street Name").pop()) {
+                row["Street Name"] = x.traits.filter((x)=>x["trait_type"]==="Street Name").pop().value;
+            } else {
+                row["Street Name"] = ""
+            }
+            if (x.traits.filter((x)=>x["trait_type"]==="Unit").pop()) {
+                row["Unit"] = x.traits.filter((x)=>x["trait_type"]==="Unit").pop().value;
+            } else {
+                row["Unit"] = "";
+            }
+            if (x.traits.filter((x)=>x["trait_type"]==="Special").pop()) {
+                row["Special"] = x.traits.filter((x)=>x["trait_type"]==="Special").pop().value;
+            } else {
+                row["Special"] = ""
+            }
+            // if (x.sell_orders !== null){
+            //     row['Current Price'] = String(Number(x.sell_orders[0].current_price)/ Math.pow(10,18))
+            //     // console.log(row.current_price);
+            // } else {
+            //     row['Current Price'] = ""
+            // }
+            row.token_id = x.token_id;
+            main.push(row);
+            // console.log(main.length);
+            if (main.length === 6000){
+                // console.log(main);
+                console.log(JSON.stringify(main));
+            }
             // console.log(row);
-        // })
-        // setData(main);
-        // setfdata(main);
-        setData(dummyData);
+        })
+        setData(main);
+        setfdata(main);
+        // setData(dummyData);
         // setfdata(dummyData);
-        // }
-        // }
-        // GetData();
+        }
+        }
+        GetData();
     },[]);
     
     const columns = data[0] && Object.keys(data[0])
     // console.log(data.stringify);
     let idList = []
-    // console.log(traitsData);
+    // console.log(data);
+    console.log(tokenData.filter((x) => x["Street Name"] === "Gorilla Gate").map((x)=> x["token_id"]));
 
         // console.log(districtNames);  
     return (
