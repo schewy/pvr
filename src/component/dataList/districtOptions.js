@@ -1,4 +1,8 @@
 const districtOptions =[
+    {
+        label:"-",
+        value:"",
+    },
     {  
         label:"Buenas Bananas",
         value:"Buenas Bananas",
@@ -42,7 +46,7 @@ const districtOptions =[
     {  
         label:"Berrington Bay",
         value:"Berrington Bay",
-        city: "Purple Palms",
+        city: "Purple Palms ",
     },
     {  
         label:"San Sapphire",
@@ -62,7 +66,7 @@ const districtOptions =[
     {  
         label:"Grapey Gardens",
         value:"Grapey Gardens",
-        city: "Purple Palms",
+        city: "Purple Palms ",
     },
     {  
         label:"Buttergonia",
@@ -77,7 +81,7 @@ const districtOptions =[
     {  
         label:"Lazy Lavenders",
         value:"Lazy Lavenders",
-        city: "Purple Palms",
+        city: "Purple Palms ",
     },
     {  
         label:"Emerald Ends",
@@ -112,7 +116,7 @@ const districtOptions =[
     {  
         label:"Violet Ville",
         value:"Violet Ville",
-        city: "Purple Palms",
+        city: "Purple Palms ",
     },
     {  
         label:"Carrot Cove",

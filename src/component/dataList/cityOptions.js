@@ -1,5 +1,9 @@
 const cityOptions = [
     {
+        label:"-",
+        value:"",
+    },
+    {
         label:"Beige Bay",
         value:"Beige Bay",
     },
@@ -16,8 +20,8 @@ const cityOptions = [
         value:"Green Grove",
     },
     {
-        label:"Purple Palms",
-        value:"Purple Palms",
+        label:"Purple Palms ",
+        value:"Purple Palms ",
     },
     {
         label:"Blue Bayside",
@@ -30,7 +34,7 @@ const cityOptions = [
     {
         label:"Special",
         value:"Special",
-    }
+    },
 ]
 
 export default cityOptions;
