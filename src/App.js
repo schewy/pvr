@@ -3,19 +3,21 @@ import '../node_modules/bootstrap/dist/css/bootstrap.css'
 import Filter from './component/filter/'
 import BrixCal from './component/brixCal';
 import StreetAnalysis from './component/streetAnalysis';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, HashRouter } from 'react-router-dom';
 
 function App() {
   return(
-    <Router>
+    <HashRouter>
       <Routes>
-        <Route path ="/" element={<BrixCal/>} />
+        <Route exact path ="/" element={<BrixCal/>} />
         <Route exact path ="/SA" element={<StreetAnalysis/>} />
       </Routes>
-    </Router>
+    </HashRouter>
+    /*
     // <StreetAnalysis/>
     // <Filter/>
     // <BrixCal/>
+    */
   )
 }
 
